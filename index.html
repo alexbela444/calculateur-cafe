@@ -23,6 +23,22 @@
       font-weight: bold;
       white-space: pre-line;
     }
+    .explication {
+      margin-top: 3rem;
+      padding: 1rem 1.5rem;
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.4;
+      background-color: #ffffff;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .explication code {
+      background: #eee;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -95,8 +111,6 @@
       const N = parseFloat(document.getElementById("personnes").value);
       const consoTasses = parseFloat(document.getElementById("conso").value);
       const P = 1.1;
-
-      // Conversion des tasses en litres (1 tasse = 0.25 litre)
       const C = consoTasses * 0.25;
 
       const T_f = getTemperatureFactor(meteo.temp);
@@ -116,5 +130,32 @@
 
     obtenirMeteo();
   </script>
+
+  <section class="explication" aria-label="Explication de la formule de calcul de la quantité de café">
+    <h2>Formule et méthodologie de calcul</h2>
+    <p>
+      La quantité de café nécessaire (<code>Q</code>, en tasses) est calculée selon la formule suivante :
+    </p>
+    <p style="font-family: monospace; background:#eee; padding:0.5rem; border-radius:5px;">
+      Q = N × C × P × T<sub>f</sub> × L<sub>f</sub> × J<sub>f</sub>
+    </p>
+    <ul>
+      <li><strong>N</strong> : Nombre de personnes à servir</li>
+      <li><strong>C</strong> : Consommation moyenne par personne (en tasses)</li>
+      <li><strong>P</strong> : Facteur de perte et imprécisions (fixé à 1,1 pour prévoir un surplus)</li>
+      <li><strong>T<sub>f</sub></strong> : Facteur lié à la température ambiante<br>
+        &nbsp;&nbsp;Plus il fait froid, plus ce facteur augmente pour tenir compte de la demande accrue de café chaud.</li>
+      <li><strong>L<sub>f</sub></strong> : Facteur lié à la luminosité et conditions météo<br>
+        &nbsp;&nbsp;Temps gris, pluie ou brouillard augmentent la consommation par effet psychologique.</li>
+      <li><strong>J<sub>f</sub></strong> : Facteur du jour de la semaine<br>
+        &nbsp;&nbsp;Par exemple, le lundi (<em>jour 1</em>) on applique un facteur plus élevé pour compenser le besoin accru en café.</li>
+    </ul>
+    <p>
+      <strong>Remarque :</strong> Dans le script, la consommation moyenne par personne est entrée en tasses. Elle est ensuite convertie en litres pour le calcul interne, mais l'affichage final et cette formule utilisent les tasses pour plus de clarté.
+    </p>
+    <p>
+      <strong>Exemple :</strong> Pour 30 personnes consommant en moyenne 1 tasse chacune, par une journée fraîche et nuageuse un lundi, la quantité sera ajustée en fonction des facteurs de température, luminosité et jour de la semaine.
+    </p>
+  </section>
 </body>
 </html>
