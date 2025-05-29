@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculateur de café intelligent ☕</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+      max-width: 600px;
+      margin: auto;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .result {
+      margin-top: 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+    .explication {
+      margin-top: 3rem;
+      padding: 1rem 1.5rem;
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.4;
+      background-color: #ffffff;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .explication code {
+      background: #eee;
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Calculateur de café intelligent ☕</h1>
+  <p><strong>Localisation :</strong> Saint-Jacques, Québec</p>
+
+  <label for="personnes">Nombre de personnes :</label>
+  <input type="number" id="personnes" value="30" min="1" />
+
+  <label for="conso">Consommation moyenne par personne (tasses) :</label>
+  <input type="number" id="conso" value="1" step="0.1" min="0" />
+
+  <button onclick="calculerCafe()">Calculer la quantité de café</button>
+
+  <div class="result" id="resultat">Chargement des données météo pour Saint-Jacques, Québec…</div>
+
+  <script>
+    const API_KEY = 'b2d8e8d23fa86121a11bf23d5c921d2c';
+    const lat = 45.9500;
+    const lon = -73.6167;
+    let meteo = { temp: null, description: null };
+
+    async function obtenirMeteo() {
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=fr`);
+        const data = await res.json();
+        meteo.temp = data.main.temp;
+        meteo.description = data.weather[0].description;
+        afficherMeteo();
+      } catch (e) {
+        document.getElementById("resultat").textContent = "Erreur météo : " + e.message;
+      }
+    }
+
+    function afficherMeteo() {
+      if (meteo.temp !== null && meteo.description !== null) {
+        document.getElementById("resultat").innerHTML = `
+          📍 <strong>Ville :</strong> Saint-Jacques, Québec<br>
+          🌡 <strong>Température :</strong> ${meteo.temp.toFixed(1)}°C<br>
+          ☁ <strong>Météo :</strong> ${meteo.description}<br><br>
+          Cliquez sur le bouton pour calculer la quantité de café.
+        `;
+      }
+    }
+
+    function getTemperatureFactor(temp) {
+      if (temp < 0) return 1.3;
+      if (temp <= 5) return 1.2;
+      if (temp <= 10) return 1.1;
+      if (temp <= 15) return 1.0;
+      if (temp <= 20) return 0.9;
+      return 0.8;
+    }
+
+    function getLuminosityFactor(description) {
+      description = description.toLowerCase();
+      if (description.includes("pluie") || description.includes("neige") || description.includes("brouillard")) return 1.2;
+      if (description.includes("nuageux") || description.includes("couvert")) return 1.1;
+      if (description.includes("partiellement")) return 1.0;
+      if (description.includes("ensoleillé") || description.includes("clair")) return 0.9;
+      return 1.0;
+    }
+
+    function getDayFactor() {
+      const jour = new Date().getDay();
+      return [0.8, 1.2, 1.1, 1.0, 1.0, 1.05, 0.9][jour];
+    }
+
+    function calculerCafe() {
+      const N = parseFloat(document.getElementById("personnes").value);
+      const consoTasses = parseFloat(document.getElementById("conso").value);
+      const P = 1.1;
+      const C = consoTasses * 0.25;
+
+      const T_f = getTemperatureFactor(meteo.temp);
+      const L_f = getLuminosityFactor(meteo.description);
+      const J_f = getDayFactor();
+
+      const litres = N * C * P * T_f * L_f * J_f;
+      const tasses = litres * 4;
+
+      document.getElementById("resultat").innerHTML = `
+        📍 <strong>Ville :</strong> Saint-Jacques, Québec<br>
+        🌡 <strong>Température :</strong> ${meteo.temp.toFixed(1)}°C<br>
+        ☁ <strong>Météo :</strong> ${meteo.description}<br><br>
+        💧 <strong>Quantité recommandée :</strong> ${litres.toFixed(2)} litres (~${Math.round(tasses)} tasses) de café.
+      `;
+    }
+
+    obtenirMeteo();
+  </script>
+
+  <section class="explication" aria-label="Explication de la formule de calcul de la quantité de café">
+    <h2>Formule et méthodologie de calcul</h2>
+    <p>
+      La quantité de café nécessaire (<code>Q</code>, en tasses) est calculée selon la formule suivante :
+    </p>
+    <p style="font-family: monospace; background:#eee; padding:0.5rem; border-radius:5px;">
+      Q = N × C × P × T<sub>f</sub> × L<sub>f</sub> × J<sub>f</sub>
+    </p>
+    <ul>
+      <li><strong>N</strong> : Nombre de personnes à servir</li>
+      <li><strong>C</strong> : Consommation moyenne par personne (en tasses)</li>
+      <li><strong>P</strong> : Facteur de perte et imprécisions (fixé à 1,1 pour prévoir un surplus)</li>
+      <li><strong>T<sub>f</sub></strong> : Facteur lié à la température ambiante<br>
+        &nbsp;&nbsp;Plus il fait froid, plus ce facteur augmente pour tenir compte de la demande accrue de café chaud.</li>
+      <li><strong>L<sub>f</sub></strong> : Facteur lié à la luminosité et conditions météo<br>
+        &nbsp;&nbsp;Temps gris, pluie ou brouillard augmentent la consommation par effet psychologique.</li>
+      <li><strong>J<sub>f</sub></strong> : Facteur du jour de la semaine<br>
+        &nbsp;&nbsp;Par exemple, le lundi (<em>jour 1</em>) on applique un facteur plus élevé pour compenser le besoin accru en café.</li>
+    </ul>
+    <p>
+      <strong>Remarque :</strong> Dans le script, la consommation moyenne par personne est entrée en tasses. Elle est ensuite convertie en litres pour le calcul interne, mais l'affichage final et cette formule utilisent les tasses pour plus de clarté.
+    </p>
+    <p>
+      <strong>Exemple :</strong> Pour 30 personnes consommant en moyenne 1 tasse chacune, par une journée fraîche et nuageuse un lundi, la quantité sera ajustée en fonction des facteurs de température, luminosité et jour de la semaine.
+    </p>
+  </section>
+</body>
+</html>
